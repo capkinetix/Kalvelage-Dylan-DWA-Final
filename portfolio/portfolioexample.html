@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My GitHub Portfolio</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/assets/main.css">
+
+  <script>
+  const btn = document.getElementById("mobile-btn");
+  const menu = document.getElementById("mobile-menu");
+
+  btn.addEventListener("click", () => {
+    menu.classList.toggle("hidden");
+  });
+</script>
+
+</head>
+
+<body>
+  <div class="container">
+    <nav class="bg-gray-900 text-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex-shrink-0 flex items-center">
+        <a href="/" class="text-xl font-bold tracking-wide hover:text-gray-300 transition">
+          Home
+        </a>
+      </div>
+
+      <div class="hidden md:flex space-x-6 items-center">
+        <a href="/portfolioexample.html" class="hover:text-gray-300 transition">Projects</a>
+        <a href="#" class="hover:text-gray-300 transition">About</a>
+        <a href="#" class="hover:text-gray-300 transition">Contact</a>
+      </div>
+
+      <button id="mobile-btn" class="md:hidden flex items-center text-gray-300 hover:text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="md:hidden hidden px-4 pb-4 space-y-2 bg-gray-800">
+    <a href="/" class="block py-2 hover:text-gray-300 transition">Home</a>
+    <a href="/portfolioexample.html" class="block py-2 hover:text-gray-300 transition">Projects</a>
+    <a href="/#" class="block py-2 hover:text-gray-300 transition">About</a>
+    <a href="/#" class="block py-2 hover:text-gray-300 transition">Contact</a>
+  </div>
+</nav>
+    <h1>GitHub Portfolio</h1>
+
+    <div class="controls">
+      <input id="username" placeholder="GitHub username..." value="capkinetix" />
+      <button id="load">Load Repos</button>
+    </div>
+
+    <div id="status" class="status">Enter a username to begin...</div>
+    <div id="grid" class="grid"></div>
+  </div>
+
+  <script type="module">
+    const loadBtn = document.getElementById("load");
+    const usernameInput = document.getElementById("username");
+    const grid = document.getElementById("grid");
+    const status = document.getElementById("status");
+
+    loadBtn.addEventListener("click", () => fetchRepos(usernameInput.value.trim()));
+
+    async function fetchRepos(username) {
+      if (!username) {
+        status.textContent = "Please enter a username.";
+        return;
+      }
+
+      grid.innerHTML = "";
+      status.textContent = "Loading...";
+
+      try {
+        const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`);
+
+        if (!res.ok) {
+          status.textContent = "User not found or GitHub error.";
+          return;
+        }
+
+        const repos = await res.json();
+
+        status.textContent = `Found ${repos.length} public repos`;
+
+        grid.innerHTML = repos
+          .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+          .map(r => `
+            <div class="card">
+              <a href="${r.html_url}" target="_blank">${r.name}</a>
+              <p>${r.description || ""}</p>
+              <div>
+                ${r.language ? `<span class="chip">${r.language}</span>` : ""}
+                <span class="chip">★ ${r.stargazers_count}</span>
+              </div>
+            </div>
+          `)
+          .join("");
+
+      } catch (err) {
+        status.textContent = "Network error. Check console.";
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
